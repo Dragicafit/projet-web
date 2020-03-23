@@ -1,0 +1,19 @@
+{
+  "name": "projet-web",
+  "author": {
+    "name": "Damien HERBERT"
+  },
+  "dependencies": {
+    "bcrypt": "^4.0.1",
+    "ejs": "^2.6.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "mysql": "^2.18.1",
+    "path": "^0.12.7"
+  },
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webtorrent/webtorrent-cli.git"
+  }
+}
