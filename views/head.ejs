@@ -2,21 +2,51 @@
 <html>
 
 <head>
+  <meta charset="utf-8">
   <title><%= title %></title>
-  <style>
-    body {
-      padding: 50px;
-      font: 13px Helvetica, Arial, sans-serif;
+  <link rel="stylesheet" href="/stylesheets/global.css">
+  <%
+    if (typeof css !== 'undefined')
+    {
+      css.forEach(valeur=>{
+  %>
+  <link rel="stylesheet" href="<%= valeur %>.css">
+  <%
+      });
     }
-
-    .error {
-      color: red
-    }
-
-    .success {
-      color: green;
-    }
-  </style>
+  %>
 </head>
 
 <body>
+  <header>
+    <div id="accueil">
+      <a class="up" href="./">
+        <img src="/images/accueil.png">
+      </a>
+    </div>
+    <h1>
+      Ajoutez vos memos et partagez les !
+    </h1>
+    <div id="connexion">
+      <%
+				if (typeof pseudo !== 'undefined')
+				{
+			%>
+      <h4>Connecté en tant que <%- pseudo %></h4>
+      <div id="boites">
+        <form action="/mesMemos">
+          <input type="submit" value="Mes memos">
+        </form>
+        <form action="/monCompte">
+          <input type="submit" value="Mon compte">
+        </form>
+        <form action="/deconnexion">
+          <input type="submit" value="Déconnexion">
+        </form>
+      </div>
+      <%
+				}
+			%>
+    </div>
+  </header>
+  <article>

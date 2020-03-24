@@ -1,0 +1,69 @@
+div {
+    /*border: 1px solid black;*/
+}
+body {
+	background-color: #BBBBBB;
+}
+.error {
+    color: red
+}
+
+.success {
+    color: green;
+}
+article {
+    position: fixed;
+    top: 100px;
+    bottom: 40px;
+    left: 200px;
+    right: 0px;
+    overflow: auto;
+	margin-left: 20px;
+	padding-left: 20px;
+	margin-top: 20px;
+	background-color: white;
+}
+header {
+	align-items: center;
+	background-color: #EEEEEE;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+	height: 100px;
+    display: flex;
+    justify-content: space-between;
+}
+aside {
+	background-color: white;
+    position: fixed;
+    top: 100px;
+    bottom: 40px;
+    left: 0px;
+    width: 170px;
+	padding-left: 30px;
+}
+footer {
+	background-color: white;
+    position: fixed;
+    padding-top: 5px;
+    height: 25px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+	padding-left: 250px;
+}
+#boites {
+    display: flex;
+}
+ul {
+    list-style-type: none;
+	padding-left: 10px;
+}
+.suppr {
+	margin: 10px;
+}
+h2, h4, p {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
