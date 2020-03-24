@@ -3,18 +3,21 @@
 
 <h1>Login</h1>
 <%- message %>
-<form method="post" action="/connexion">
+<form method="POST" action="/connexion">
   <p>
     <label>Username:</label>
-    <input type="text" name="username">
+    <input type="text" name="pseudo" size="30" placeholder="Pseudo" required>
   </p>
   <p>
     <label>Password:</label>
-    <input type="text" name="password">
+    <input type="password" name="motDePasse" size="30" placeholder="Mot de passe" pattern=".{8,32}" required>
   </p>
   <p>
     <input type="submit" value="Connexion">
   </p>
+</form>
+<form action="/inscription">
+  <input type="submit" value="Inscription">
 </form>
 
 <% include foot %>

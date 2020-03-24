@@ -27,6 +27,7 @@ con.connect(function (err) {
     saveUninitialized: false,
     secret: 'ceci est la clé de cookie à garder secret'
   }));
+  app.use(express.static(path.join(__dirname, 'public')));
 
   app.use(function (req, res, next) {
     var err = req.session.error;
@@ -36,49 +37,67 @@ con.connect(function (err) {
     res.locals.message = '';
     if (err) res.locals.message = '<p class="msg error">' + err + '</p>';
     if (msg) res.locals.message = '<p class="msg success">' + msg + '</p>';
+
     next();
   });
 
-  function auth(username, password, callback) {
-    console.log('connexion %s:%s', username);
+  function auth(pseudo, motDePasse, callback) {
+    console.log('connexion %s', pseudo);
 
-    var sql = "SELECT Hash FROM user WHERE Id LIKE " + con.escape(username)
+    var sql = "SELECT Hash FROM pseudos WHERE Id LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
 
-      bcrypt.compare(password, result[0]['Hash'], function (err, result) {
+      bcrypt.compare(motDePasse, result[0]['Hash'], function (err, result) {
         if (err) return callback(err);
         if (!result) return callback();
-        callback(null, { name: username });
+        callback(null, { name: pseudo });
       });
     })
   }
 
-  function inscription(username, password, password2, callback) {
-    console.log('inscription %s:%s:%s', username);
+  function inscription(pseudo, motDePasse, motDePasse2, callback) {
+    console.log('inscription %s', pseudo);
 
-    if (password != password2) return callback();
-    var sql = "SELECT Id FROM user WHERE Id LIKE " + con.escape(username)
+    if (motDePasse != motDePasse2) return callback();
+    var sql = "SELECT Id FROM pseudos WHERE Id LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (result.length) return callback();
 
-      bcrypt.hash(password, saltRounds, function (err, hash) {
+      bcrypt.hash(motDePasse, saltRounds, function (err, hash) {
         if (err) return callback(err);
 
-        var sql = "INSERT INTO user (Id, Hash) VALUES (" + con.escape(username) + ", " + con.escape(hash) + ") ON DUPLICATE KEY UPDATE Id = Id"
+        var sql = "INSERT INTO pseudos (Id, Hash) VALUES (" + con.escape(pseudo) + ", " + con.escape(hash) + ") ON DUPLICATE KEY UPDATE Id = Id"
         con.query(sql, function (err, result) {
           if (err) return callback(err);
-          return callback(null, { name: username });
+          return callback(null, { name: pseudo });
         })
       });
     })
   }
 
+  function memos(pseudo, callback) {
+    var sql = "SELECT memos.Id as Id, memos.Titre as Titre, memos.Creation as Crea, memos.Modif as Modif, droits.PseudoId as IdCrea FROM droits LEFT JOIN memos on droits.MemoId = memos.Id WHERE droits.PseudoId LIKE " + con.escape(pseudo)
+    con.query(sql, function (err, result) {
+      if (err) return callback(err);
+
+      callback(null, result);
+    })
+  }
+
   app.get('/', function (req, res) {
-    if (req.session.user) {
-      res.send('<a href="/deconnexion">Déconnexion</a>');
+    if (req.session.pseudo) {
+      var pseudo = req.session.pseudo.name;
+      memos(pseudo, (err, memos) => {
+        if (err) throw err;
+        res.render('memos', {
+          titre: 'Accueil',
+          pseudo: pseudo,
+          memos: memos
+        });
+      });
     } else {
       res.render('login');
     }
@@ -91,7 +110,7 @@ con.connect(function (err) {
   });
 
   app.get('/inscription', function (req, res) {
-    if (req.session.user) {
+    if (req.session.pseudo) {
       res.redirect('/');
     } else {
       res.render('register');
@@ -99,12 +118,12 @@ con.connect(function (err) {
   });
 
   app.post('/connexion', function (req, res) {
-    auth(req.body.username, req.body.password, function (err, user) {
+    auth(req.body.pseudo, req.body.motDePasse, function (err, pseudo) {
       if (err) throw err;
-      if (user) {
+      if (pseudo) {
         req.session.regenerate(function () {
-          req.session.user = user;
-          req.session.success = 'Connexion réussie ' + user.name;
+          req.session.pseudo = pseudo;
+          req.session.success = 'Connexion réussie ' + pseudo.name;
           res.redirect('/');
         });
       } else {
@@ -115,10 +134,10 @@ con.connect(function (err) {
   });
 
   app.post('/inscription', function (req, res) {
-    inscription(req.body.username, req.body.password, req.body.password2, function (err, user) {
+    inscription(req.body.pseudo, req.body.motDePasse, req.body.motDePasse2, function (err, pseudo) {
       if (err) throw err;
-      if (user) {
-        req.session.success = 'Inscription réussie ' + user.name;
+      if (pseudo) {
+        req.session.success = 'Inscription réussie ' + pseudo.name;
         res.redirect('/');
       } else {
         req.session.error = 'Inscription impossible';

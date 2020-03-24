@@ -1,0 +1,19 @@
+<div class="ligne">
+    <div class="memo">
+        <div class="droite">
+            <div>
+                <a class="titre" href="/memo?id=<%- memo['Id'] %>"><%- memo['Titre'] %></a>
+            </div>
+        </div>
+    </div>
+    <%
+        if(pseudo == memo["IdCrea"])
+        {
+    %>
+    <a class="suppr" href="/supprMemo?id=<%- memo['Id'] %>">
+        <img src="/images/suppr.jpg">
+    </a>
+    <%
+    	}
+    %>
+</div>

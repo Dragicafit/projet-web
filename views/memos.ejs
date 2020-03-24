@@ -1,0 +1,13 @@
+<% include head %>
+
+<h1>Memos</h1>
+<%- message %>
+<%
+memos.forEach(memo => {
+%>
+<% include memo %>
+<%
+});
+%>
+
+<% include foot %>
