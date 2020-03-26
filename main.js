@@ -72,10 +72,36 @@ con.connect(function (err) {
         var sql = "INSERT INTO utilisateurs (Id, Hash) VALUES (" + con.escape(pseudo) + ", " + con.escape(hash) + ") ON DUPLICATE KEY UPDATE Id = Id"
         con.query(sql, function (err, result) {
           if (err) return callback(err);
-          return callback(null, { name: pseudo });
+          return callback(null, { pseudo: pseudo });
         })
       });
     })
+  }
+
+  function modif(pseudo, ancienMotDePasse, motDePasse, motDePasse2, callback) {
+    console.log('mofication %s', pseudo);
+
+    if (motDePasse != motDePasse2) return callback();
+    var sql = "SELECT Hash FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
+    con.query(sql, function (err, result) {
+      if (err) return callback(err);
+      if (!result.length) return callback();
+
+      bcrypt.compare(ancienMotDePasse, result[0]['Hash'], function (err, result) {
+        if (err) return callback(err);
+        if (!result) return callback();
+
+        bcrypt.hash(motDePasse, saltRounds, function (err, hash) {
+          if (err) return callback(err);
+
+          var sql = "UPDATE utilisateurs SET Hash = " + con.escape(hash) + " WHERE Id = " + con.escape(pseudo)
+          con.query(sql, function (err) {
+            if (err) return callback(err);
+            return callback(null, { pseudo: pseudo });
+          });
+        });
+      });
+    });
   }
 
   function memos(pseudo, callback) {
@@ -133,7 +159,6 @@ con.connect(function (err) {
         var sql = "DELETE FROM droits WHERE PseudoId LIKE " + con.escape(pseudo);
         con.query(sql, function (err) {
           if (err) return callback(err);
-          console.log(result)
           if (!result.length) return callback();
 
           var first = result.pop()['MemoId']
@@ -233,6 +258,23 @@ con.connect(function (err) {
           res.redirect('/inscription');
         }
       });
+    }
+  });
+
+  app.post('/modifierCompte', function (req, res) {
+    if (req.session.utilisateur) {
+      modif(req.session.utilisateur.pseudo, req.body.ancienMotDePasse, req.body.motDePasse, req.body.motDePasse2, function (err, utilisateur) {
+        if (err) throw err;
+        if (utilisateur) {
+          req.session.success = 'Modification réussie ' + utilisateur.pseudo;
+          res.redirect('/');
+        } else {
+          req.session.error = 'Modification impossible';
+          res.redirect('/monCompte');
+        }
+      });
+    } else {
+      res.redirect('/');
     }
   });
 
