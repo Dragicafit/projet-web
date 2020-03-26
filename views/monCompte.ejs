@@ -1,0 +1,31 @@
+<% var titre = 'Mon compte' %>
+<% include head %>
+
+<h1>Mon compte</h1>
+<%- message %>
+<form action="modifierCompte" method="POST">
+    <div>
+        <table>
+            <tr>
+                <th colspan="2">Mot de passe :</th>
+            </tr>
+            <tr>
+                <td>Mot de passe actuel</td>
+                <td><input type="password" name="ancienMotDePasse" pattern=".{8,32}"></td>
+            </tr>
+            <tr>
+                <td>Nouveau mot de passe</td>
+                <td><input type="password" name="motDePasse" pattern=".{8,32}"></td>
+            </tr>
+            <tr>
+                <td>Confirmer mot de passe</td>
+                <td><input type="password" name="motDePasse2" pattern=".{8,32}"></td>
+            </tr>
+        </table>
+    </div>
+    <input type="submit" value="modifier">
+</form>
+<a href="/supprUtilisateur">supprimer compte</a>
+</article>
+
+<% include foot %>

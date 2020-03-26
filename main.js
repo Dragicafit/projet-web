@@ -105,7 +105,7 @@ con.connect(function (err) {
     var sql = "SELECT * FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
-      if (!result) callback();
+      if (!result.length) callback();
 
       var sql = "DELETE FROM droits WHERE MemoId = " + con.escape(id)
       con.query(sql, function (err, result) {
@@ -119,6 +119,46 @@ con.connect(function (err) {
         })
       })
     })
+  }
+
+  function supprUtilisateur(pseudo, callback) {
+    var sql = "DELETE FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo);
+    con.query(sql, function (err) {
+      if (err) return callback(err);
+
+      var sql = "SELECT MemoId FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " and Droit = 0";
+      con.query(sql, function (err, result) {
+        if (err) return callback(err);
+
+        var sql = "DELETE FROM droits WHERE PseudoId LIKE " + con.escape(pseudo);
+        con.query(sql, function (err) {
+          if (err) return callback(err);
+          console.log(result)
+          if (!result.length) return callback();
+
+          var first = result.pop()['MemoId']
+          var sql = "DELETE FROM droits WHERE MemoId = " + first;
+          result.forEach(memo => {
+            sql += " or MemoId = " + con.escape(memo['MemoId']);
+          })
+
+          con.query(sql, function (err) {
+            if (err) return callback(err);
+
+            var sql = "DELETE FROM memos WHERE Id = " + first;
+            result.forEach(memo => {
+              sql += " or Id = " + con.escape(memo['MemoId']);
+            })
+
+            con.query(sql, function (err) {
+              if (err) return callback(err);
+
+              callback();
+            });
+          });
+        });
+      });
+    });
   }
 
   app.get('/', function (req, res) {
@@ -148,6 +188,14 @@ con.connect(function (err) {
       res.redirect('/');
     } else {
       res.render('register');
+    }
+  });
+
+  app.get('/monCompte', function (req, res) {
+    if (req.session.utilisateur) {
+      res.render('monCompte');
+    } else {
+      res.redirect('/');
     }
   });
 
@@ -206,6 +254,19 @@ con.connect(function (err) {
       supprMemo(req.session.utilisateur.pseudo, req.query.id, function (err) {
         if (err) throw err;
         res.redirect('back');
+      });
+    }
+  });
+
+  app.get('/supprUtilisateur', function (req, res) {
+    if (!req.session.utilisateur) {
+      res.redirect('/');
+    } else {
+      supprUtilisateur(req.session.utilisateur.pseudo, function (err) {
+        if (err) throw err;
+        req.session.destroy(function () {
+          res.redirect('/');
+        });
       });
     }
   });
