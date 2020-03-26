@@ -9,5 +9,9 @@ memos.forEach(memo => {
 <%
 });
 %>
+<form id="creation" action="creerMemo" method="POST">
+    <textarea name="texte" rows="3" cols="30" placeholder="texte" required></textarea><br>
+    <input type="submit" value="Créer memo">
+</form>
 
 <% include foot %>

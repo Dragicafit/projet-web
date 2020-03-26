@@ -2,7 +2,7 @@
     <div class="memo">
         <div class="droite">
             <div>
-                <a class="titre" href="/memo?id=<%- memo['Id'] %>"><%- memo['Titre'] %></a>
+                <a class="titre" href="/memo?id=<%- memo['Id'] %>"><%- memo['Texte'].substring(0,100) %></a>
             </div>
         </div>
     </div>

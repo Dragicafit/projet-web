@@ -41,10 +41,10 @@ con.connect(function (err) {
     next();
   });
 
-  function auth(pseudo, motDePasse, callback) {
+  function connexion(pseudo, motDePasse, callback) {
     console.log('connexion %s', pseudo);
 
-    var sql = "SELECT Hash FROM pseudos WHERE Id LIKE " + con.escape(pseudo)
+    var sql = "SELECT Hash FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -52,7 +52,7 @@ con.connect(function (err) {
       bcrypt.compare(motDePasse, result[0]['Hash'], function (err, result) {
         if (err) return callback(err);
         if (!result) return callback();
-        callback(null, { name: pseudo });
+        callback(null, { pseudo: pseudo });
       });
     })
   }
@@ -61,7 +61,7 @@ con.connect(function (err) {
     console.log('inscription %s', pseudo);
 
     if (motDePasse != motDePasse2) return callback();
-    var sql = "SELECT Id FROM pseudos WHERE Id LIKE " + con.escape(pseudo)
+    var sql = "SELECT Id FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (result.length) return callback();
@@ -69,7 +69,7 @@ con.connect(function (err) {
       bcrypt.hash(motDePasse, saltRounds, function (err, hash) {
         if (err) return callback(err);
 
-        var sql = "INSERT INTO pseudos (Id, Hash) VALUES (" + con.escape(pseudo) + ", " + con.escape(hash) + ") ON DUPLICATE KEY UPDATE Id = Id"
+        var sql = "INSERT INTO utilisateurs (Id, Hash) VALUES (" + con.escape(pseudo) + ", " + con.escape(hash) + ") ON DUPLICATE KEY UPDATE Id = Id"
         con.query(sql, function (err, result) {
           if (err) return callback(err);
           return callback(null, { name: pseudo });
@@ -79,7 +79,7 @@ con.connect(function (err) {
   }
 
   function memos(pseudo, callback) {
-    var sql = "SELECT memos.Id as Id, memos.Titre as Titre, memos.Creation as Crea, memos.Modif as Modif, droits.PseudoId as IdCrea FROM droits LEFT JOIN memos on droits.MemoId = memos.Id WHERE droits.PseudoId LIKE " + con.escape(pseudo)
+    var sql = "SELECT memos.Id as Id, memos.Texte as Texte, memos.Creation as Crea, memos.Modif as Modif, droits.PseudoId as IdCrea FROM droits LEFT JOIN memos on droits.MemoId = memos.Id WHERE droits.PseudoId LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
 
@@ -87,9 +87,43 @@ con.connect(function (err) {
     })
   }
 
+  function creerMemo(pseudo, texte, callback) {
+    var sql = "INSERT INTO memos (Texte) VALUES (" + con.escape(texte) + ")"
+    con.query(sql, function (err, result) {
+      if (err) return callback(err);
+
+      var sql = "INSERT INTO droits (PseudoId, MemoId, Droit) VALUES (" + con.escape(pseudo) + ", " + con.escape(result.insertId) + ", 0)"
+      con.query(sql, function (err, result) {
+        if (err) return callback(err);
+
+        callback();
+      })
+    })
+  }
+
+  function supprMemo(pseudo, id, callback) {
+    var sql = "SELECT * FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
+    con.query(sql, function (err, result) {
+      if (err) return callback(err);
+      if (!result) callback();
+
+      var sql = "DELETE FROM droits WHERE MemoId = " + con.escape(id)
+      con.query(sql, function (err, result) {
+        if (err) return callback(err);
+
+        var sql = "DELETE FROM memos WHERE Id = " + con.escape(id)
+        con.query(sql, function (err, result) {
+          if (err) return callback(err);
+
+          callback();
+        })
+      })
+    })
+  }
+
   app.get('/', function (req, res) {
-    if (req.session.pseudo) {
-      var pseudo = req.session.pseudo.name;
+    if (req.session.utilisateur) {
+      var pseudo = req.session.utilisateur.pseudo;
       memos(pseudo, (err, memos) => {
         if (err) throw err;
         res.render('memos', {
@@ -110,7 +144,7 @@ con.connect(function (err) {
   });
 
   app.get('/inscription', function (req, res) {
-    if (req.session.pseudo) {
+    if (req.session.utilisateur) {
       res.redirect('/');
     } else {
       res.render('register');
@@ -118,32 +152,62 @@ con.connect(function (err) {
   });
 
   app.post('/connexion', function (req, res) {
-    auth(req.body.pseudo, req.body.motDePasse, function (err, pseudo) {
-      if (err) throw err;
-      if (pseudo) {
-        req.session.regenerate(function () {
-          req.session.pseudo = pseudo;
-          req.session.success = 'Connexion réussie ' + pseudo.name;
+    if (req.session.utilisateur) {
+      res.redirect('/');
+    } else {
+      connexion(req.body.pseudo, req.body.motDePasse, function (err, utilisateur) {
+        if (err) throw err;
+        if (utilisateur) {
+          req.session.regenerate(function () {
+            req.session.utilisateur = utilisateur;
+            req.session.success = 'Connexion réussie ' + utilisateur.pseudo;
+            res.redirect('/');
+          });
+        } else {
+          req.session.error = 'Connexion impossible';
           res.redirect('/');
-        });
-      } else {
-        req.session.error = 'Connexion impossible';
-        res.redirect('/');
-      }
-    });
+        }
+      });
+    }
   });
 
   app.post('/inscription', function (req, res) {
-    inscription(req.body.pseudo, req.body.motDePasse, req.body.motDePasse2, function (err, pseudo) {
-      if (err) throw err;
-      if (pseudo) {
-        req.session.success = 'Inscription réussie ' + pseudo.name;
-        res.redirect('/');
-      } else {
-        req.session.error = 'Inscription impossible';
-        res.redirect('/inscription');
-      }
-    });
+    if (req.session.utilisateur) {
+      res.redirect('/');
+    } else {
+      inscription(req.body.pseudo, req.body.motDePasse, req.body.motDePasse2, function (err, utilisateur) {
+        if (err) throw err;
+        if (utilisateur) {
+          req.session.success = 'Inscription réussie ' + utilisateur.pseudo;
+          res.redirect('/');
+        } else {
+          req.session.error = 'Inscription impossible';
+          res.redirect('/inscription');
+        }
+      });
+    }
+  });
+
+  app.post('/creerMemo', function (req, res) {
+    if (!req.session.utilisateur) {
+      res.redirect('/');
+    } else {
+      creerMemo(req.session.utilisateur.pseudo, req.body.texte, function (err) {
+        if (err) throw err;
+        res.redirect('back');
+      });
+    }
+  });
+
+  app.get('/supprMemo', function (req, res) {
+    if (!req.session.utilisateur) {
+      res.redirect('/');
+    } else {
+      supprMemo(req.session.utilisateur.pseudo, req.query.id, function (err) {
+        if (err) throw err;
+        res.redirect('back');
+      });
+    }
   });
 
   app.listen(3000);
