@@ -1,0 +1,56 @@
+#listePost
+{
+	display: flex;
+	flex-direction: column;
+	margin-top: 20px;
+}
+#creation
+{
+    position: fixed;
+	margin-top: 50px;
+	top: 100px;
+	left: 700px;
+	margin-left: 200px;
+}
+
+.memo
+{
+	align-items: center;
+	display: flex;
+    justify-content: space-between;
+    height: 110px;
+    width: 500px;
+	border-bottom: 1px solid grey;
+}
+.droite
+{
+	display: flex;
+	flex-direction: column;
+    justify-content: space-between;
+    width: 300px;
+    height: 100px;
+}
+.up, .down
+{
+    width: 30px;
+    height: 30px;
+}
+.titre
+{
+	text-decoration: none;
+	color: black;
+	height: 50px;
+	overflow: hidden;
+    word-wrap: break-word;
+}
+.espace
+{
+	height: 20px;
+	width: 20px;
+}
+.ligne
+{
+	align-items: center;
+	display: flex;
+	padding-bottom:10px;
+}
