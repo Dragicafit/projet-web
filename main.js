@@ -44,6 +44,7 @@ con.connect(function (err) {
   function connexion(pseudo, motDePasse, callback) {
     console.log('connexion %s', pseudo);
 
+    if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
     var sql = "SELECT Hash FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
@@ -61,6 +62,7 @@ con.connect(function (err) {
     console.log('inscription %s', pseudo);
 
     if (motDePasse != motDePasse2) return callback();
+    if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
     var sql = "SELECT Id FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
@@ -82,6 +84,7 @@ con.connect(function (err) {
     console.log('mofication %s', pseudo);
 
     if (motDePasse != motDePasse2) return callback();
+    if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
     var sql = "SELECT Hash FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
