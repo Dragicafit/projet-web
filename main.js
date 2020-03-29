@@ -51,6 +51,7 @@ con.connect(function (err) {
   function connexion(pseudo, motDePasse, callback) {
     console.log('connexion %s', pseudo);
 
+    if (pseudo.length == 0) return callback();
     if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
     var sql = "SELECT Hash FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
@@ -68,6 +69,7 @@ con.connect(function (err) {
   function inscription(pseudo, motDePasse, motDePasse2, callback) {
     console.log('inscription %s', pseudo);
 
+    if (pseudo.length == 0) return callback();
     if (motDePasse != motDePasse2) return callback();
     if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
     var sql = "SELECT Id FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
@@ -90,6 +92,7 @@ con.connect(function (err) {
   function modif(pseudo, ancienMotDePasse, motDePasse, motDePasse2, callback) {
     console.log('mofication %s', pseudo);
 
+    if (pseudo.length == 0) return callback();
     if (motDePasse != motDePasse2) return callback();
     if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
     var sql = "SELECT Hash FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
@@ -124,6 +127,8 @@ con.connect(function (err) {
   }
 
   function creerMemo(pseudo, texte, callback) {
+    if (texte.length > 100)
+      return callback()
     var sql = "INSERT INTO memos (Texte) VALUES (" + con.escape(texte) + ") ON DUPLICATE KEY UPDATE Texte = Texte"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
@@ -138,6 +143,8 @@ con.connect(function (err) {
   }
 
   function modifMemo(pseudo, memo, texte, callback) {
+    if (texte.length > 100)
+      return callback()
     var sql = "SELECT PseudoId FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " AND MemoId = " + con.escape(memo) + " AND (Droit < 2)"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
