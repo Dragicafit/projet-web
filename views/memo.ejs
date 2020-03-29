@@ -12,7 +12,8 @@
             {
         %>
         <form class="ajouteUtilisateur" action="/ajouteUtilisateurAMemo">
-            <input type="text" name="pseudo" size="25" placeholder="Pseudo" required>
+            <label for="pseudo">Partager avec :</label>
+            <input type="text" id="pseudo" name="pseudo" size="25" placeholder="Pseudo" required>
             <div>
                 <input type="checkbox" id="ecriture<%- memo['Id'] %>" name="ecriture">
                 <label for="ecriture<%- memo['Id'] %>">Droit en écriture</label>

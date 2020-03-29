@@ -10,7 +10,7 @@ services:
         ports:
                 - 3306:3306
         environment:
-                - MYSQL_ROOT_PASSWORD=nzyMxTv4VPDgBMmz
+                - MYSQL_ROOT_PASSWORD=UKhzlwBPl9882zEs
         restart: always
     myadmin:
             image: phpmyadmin/phpmyadmin

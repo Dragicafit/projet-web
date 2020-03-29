@@ -5,16 +5,18 @@
 <%- message %>
 <form method="post" action="/inscription">
   <p>
-    <label>Pseudo :</label>
-    <input type="text" name="pseudo" size="30" placeholder="Pseudo" required>
+    <label for="pseudo">Pseudo :</label>
+    <input type="text" id="pseudo" name="pseudo" size="30" placeholder="Pseudo" required>
   </p>
   <p>
-    <label>Mot de passe :</label>
-    <input type="password" name="motDePasse" size="30" placeholder="Mot de passe" pattern=".{8,32}" required>
+    <label for="motDePasse">Mot de passe :</label>
+    <input type="password" id="motDePasse" name="motDePasse" size="30" placeholder="Mot de passe" pattern=".{8,32}"
+      required>
   </p>
   <p>
-    <label>Confirmer mot de passe :</label>
-    <input type="password" name="motDePasse2" size="30" placeholder="Mot de passe" pattern=".{8,32}" required>
+    <label for="motDePasse2">Confirmer mot de passe :</label>
+    <input type="password" id="motDePasse2" name="motDePasse2" size="30" placeholder="Confirmer mot de passe"
+      pattern=".{8,32}" required>
   </p>
   <p>
     <input type="submit" value="Inscription">

@@ -10,22 +10,28 @@
                 <th colspan="2">Mot de passe :</th>
             </tr>
             <tr>
-                <td>Mot de passe actuel</td>
-                <td><input type="password" name="ancienMotDePasse" pattern=".{8,32}"></td>
+                <td><label for="ancienMotDePasse">Mot de passe actuel</label></td>
+                <td><input type="password" id="ancienMotDePasse" name="ancienMotDePasse" size="30"
+                        placeholder="Mot de passe actuel" pattern=".{8,32}" required>
+                </td>
             </tr>
             <tr>
-                <td>Nouveau mot de passe</td>
-                <td><input type="password" name="motDePasse" pattern=".{8,32}"></td>
+                <td><label for="motDePasse">Nouveau mot de passe</label></td>
+                <td><input type="password" id="motDePasse" name="motDePasse" size="30"
+                        placeholder="Nouveau mot de passe" pattern=".{8,32}" required></td>
             </tr>
             <tr>
-                <td>Confirmer mot de passe</td>
-                <td><input type="password" name="motDePasse2" pattern=".{8,32}"></td>
+                <td><label for="motDePasse2">Confirmer mot de passe</label></td>
+                <td><input type="password" id="motDePasse2" name="motDePasse2" size="30"
+                        placeholder="Confirmer mot de passe" pattern=".{8,32}" required></td>
             </tr>
         </table>
     </div>
     <input type="submit" value="modifier">
 </form>
-<a href="/supprUtilisateur">supprimer compte</a>
+<form action="/supprUtilisateur">
+    <input type="submit" value="Supprimer compte">
+</form>
 </article>
 
 <% include foot %>
