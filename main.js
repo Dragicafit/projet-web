@@ -114,8 +114,8 @@ con.connect(function (err) {
     });
   }
 
-  function memos(pseudo, callback) {
-    var sql = "SELECT memos.Id as Id, memos.Texte as Texte, memos.Creation as Crea, memos.Modif as Modif, droits.Droit as Droit FROM droits LEFT JOIN memos on droits.MemoId = memos.Id WHERE droits.PseudoId LIKE " + con.escape(pseudo)
+  function memos(pseudo, droit, callback) {
+    var sql = "SELECT memos.Id as Id, memos.Texte as Texte, memos.Creation as Crea, memos.Modif as Modif, droits.Droit as Droit FROM droits LEFT JOIN memos on droits.MemoId = memos.Id WHERE droits.PseudoId LIKE " + con.escape(pseudo) + (droit != null ? "AND droits.Droit = " + droit : "");
     con.query(sql, function (err, result) {
       if (err) return callback(err);
 
@@ -231,7 +231,7 @@ con.connect(function (err) {
   app.get('/', function (req, res) {
     if (req.session.utilisateur) {
       var pseudo = req.session.utilisateur.pseudo;
-      memos(pseudo, (err, memos) => {
+      memos(pseudo, null, (err, memos) => {
         if (err) throw err;
         res.render('memos', {
           titre: 'Accueil',
@@ -241,6 +241,22 @@ con.connect(function (err) {
       });
     } else {
       res.render('login');
+    }
+  });
+
+  app.get('/mesMemos', function (req, res) {
+    if (!req.session.utilisateur) {
+      res.redirect('/');
+    } else {
+      var pseudo = req.session.utilisateur.pseudo;
+      memos(pseudo, 0, (err, memos) => {
+        if (err) throw err;
+        res.render('memos', {
+          titre: 'Mes memos',
+          pseudo: pseudo,
+          memos: memos
+        });
+      });
     }
   });
 
