@@ -2,7 +2,8 @@
     <div class="memo">
         <div class="droite">
             <div>
-                <a class="titre" href="/memo?id=<%- memo['Id'] %>"><%- memo['Texte'] %></a>
+                <textarea id="<%- memo['Id'] %>" class="texteMemo" rows="3" cols="30"><%- memo['Texte'] %>
+                </textarea>
             </div>
         </div>
     </div>

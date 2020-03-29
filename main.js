@@ -3,6 +3,10 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 const session = require('express-session');
 const mysql = require('mysql')
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+const sharedsession = require("express-socket.io-session");
 
 let con = mysql.createConnection({
   host: "localhost",
@@ -16,16 +20,19 @@ con.connect(function (err) {
 
   const saltRounds = 10;
 
-  var app = module.exports = express();
+  var customsession = session({
+    resave: false,
+    saveUninitialized: false,
+    secret: 'ceci est la clé de cookie à garder secret'
+  });
 
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
 
-  app.use(express.urlencoded({ extended: false }))
-  app.use(session({
-    resave: false,
-    saveUninitialized: false,
-    secret: 'ceci est la clé de cookie à garder secret'
+  app.use(express.urlencoded({ extended: false }));
+  app.use(customsession);
+  io.use(sharedsession(customsession, {
+    autoSave: false
   }));
   app.use(express.static(path.join(__dirname, 'public')));
 
@@ -126,6 +133,21 @@ con.connect(function (err) {
         if (err) return callback(err);
 
         callback();
+      })
+    })
+  }
+
+  function modifMemo(pseudo, memo, texte, callback) {
+    var sql = "SELECT PseudoId FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " AND MemoId = " + con.escape(memo) + " AND (Droit < 2)"
+    con.query(sql, function (err, result) {
+      if (err) return callback(err);
+      if (!result.length) callback();
+
+      var sql = "UPDATE memos SET Texte = " + con.escape(texte) + "WHERE Id = " + con.escape(memo);
+      con.query(sql, function (err) {
+        if (err) return callback(err);
+
+        callback(null, { memo: memo, texte: texte });
       })
     })
   }
@@ -316,6 +338,29 @@ con.connect(function (err) {
     }
   });
 
-  app.listen(3000);
-  console.log('Express démarré sur le port 3000');
+  io.sockets.on('connection', (socket) => {
+
+    socket.on('new room', (data) => {
+      if (socket.handshake.session.utilisateur) {
+        console.log("joining " + data)
+        socket.join(data);
+      }
+    });
+
+    socket.on('update', (data) => {
+      if (socket.handshake.session.utilisateur) {
+        console.log("updating " + data.memo)
+        modifMemo(socket.handshake.session.utilisateur.pseudo, data.memo, data.texte, (err, result) => {
+          if (err) throw err;
+          if (result) {
+            socket.broadcast.to(result.memo).emit('update others', result);
+          }
+        })
+      }
+    });
+  });
+
+  server.listen(3000, () => {
+    console.log('Express démarré sur le port 3000');
+  });
 })

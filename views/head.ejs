@@ -4,13 +4,15 @@
 <head>
   <meta charset="utf-8">
   <title><%= titre %></title>
+  <script src="/javascripts/jquery-3.4.1.min.js"></script>
+  <script src="/javascripts/socket.io.js"></script>
   <link rel="stylesheet" href="/stylesheets/global.css">
   <%
     if (typeof css !== 'undefined')
     {
       css.forEach(valeur=>{
   %>
-  <link rel="stylesheet" href="<%= valeur %>.css">
+  <link rel="stylesheet" href="/stylesheets/<%= valeur %>.css">
   <%
       });
     }
