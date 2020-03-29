@@ -115,7 +115,7 @@ con.connect(function (err) {
   }
 
   function memos(pseudo, callback) {
-    var sql = "SELECT memos.Id as Id, memos.Texte as Texte, memos.Creation as Crea, memos.Modif as Modif, droits.PseudoId as IdCrea FROM droits LEFT JOIN memos on droits.MemoId = memos.Id WHERE droits.PseudoId LIKE " + con.escape(pseudo)
+    var sql = "SELECT memos.Id as Id, memos.Texte as Texte, memos.Creation as Crea, memos.Modif as Modif, droits.Droit as Droit FROM droits LEFT JOIN memos on droits.MemoId = memos.Id WHERE droits.PseudoId LIKE " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
 
@@ -124,11 +124,11 @@ con.connect(function (err) {
   }
 
   function creerMemo(pseudo, texte, callback) {
-    var sql = "INSERT INTO memos (Texte) VALUES (" + con.escape(texte) + ")"
+    var sql = "INSERT INTO memos (Texte) VALUES (" + con.escape(texte) + ") ON DUPLICATE KEY UPDATE Texte = Texte"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
 
-      var sql = "INSERT INTO droits (PseudoId, MemoId, Droit) VALUES (" + con.escape(pseudo) + ", " + con.escape(result.insertId) + ", 0)"
+      var sql = "INSERT INTO droits (PseudoId, MemoId, Droit) VALUES (" + con.escape(pseudo) + ", " + con.escape(result.insertId) + ", 0) ON DUPLICATE KEY UPDATE PseudoId = PseudoId"
       con.query(sql, function (err, result) {
         if (err) return callback(err);
 
@@ -141,7 +141,7 @@ con.connect(function (err) {
     var sql = "SELECT PseudoId FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " AND MemoId = " + con.escape(memo) + " AND (Droit < 2)"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
-      if (!result.length) callback();
+      if (!result.length) return callback();
 
       var sql = "UPDATE memos SET Texte = " + con.escape(texte) + "WHERE Id = " + con.escape(memo);
       con.query(sql, function (err) {
@@ -156,7 +156,7 @@ con.connect(function (err) {
     var sql = "SELECT * FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
-      if (!result.length) callback();
+      if (!result.length) return callback();
 
       var sql = "DELETE FROM droits WHERE MemoId = " + con.escape(id)
       con.query(sql, function (err, result) {
@@ -168,6 +168,23 @@ con.connect(function (err) {
 
           callback();
         })
+      })
+    })
+  }
+
+  function ajouteUtilisateurAMemo(pseudo, pseudoAAjouter, id, ecriture, callback) {
+    console.log(pseudo, pseudoAAjouter, id, ecriture)
+    var sql = "SELECT * FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
+    con.query(sql, function (err, result) {
+      if (err) return callback(err);
+      if (!result.length) return callback();
+
+      var droit = ecriture == "on" ? "1" : "2";
+      var sql = "INSERT INTO droits (PseudoId, MemoId, Droit) VALUES (" + con.escape(pseudoAAjouter) + ", " + con.escape(id) + ", " + droit + ") ON DUPLICATE KEY UPDATE PseudoId = PseudoId";
+      con.query(sql, function (err) {
+        if (err) return callback(err);
+
+        callback();
       })
     })
   }
@@ -319,6 +336,17 @@ con.connect(function (err) {
       res.redirect('/');
     } else {
       supprMemo(req.session.utilisateur.pseudo, req.query.id, function (err) {
+        if (err) throw err;
+        res.redirect('back');
+      });
+    }
+  });
+
+  app.get('/ajouteUtilisateurAMemo', function (req, res) {
+    if (!req.session.utilisateur) {
+      res.redirect('/');
+    } else {
+      ajouteUtilisateurAMemo(req.session.utilisateur.pseudo, req.query.pseudo, req.query.id, req.query.ecriture, function (err) {
         if (err) throw err;
         res.redirect('back');
       });

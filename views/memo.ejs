@@ -2,13 +2,29 @@
     <div class="memo">
         <div class="droite">
             <div>
-                <textarea id="<%- memo['Id'] %>" class="texteMemo" rows="3" cols="30"><%- memo['Texte'] %>
+                <textarea id="<%- memo['Id'] %>" class="texteMemo" rows="3" cols="30"
+                    <%- memo["Droit"] == 2 ? "readonly" : "" %>><%- memo['Texte'] %>
                 </textarea>
             </div>
         </div>
+        <%
+            if(memo["Droit"] == 0)
+            {
+        %>
+        <form class="ajouteUtilisateur" action="/ajouteUtilisateurAMemo">
+            <input type="text" name="pseudo" size="25" placeholder="Pseudo" required>
+            <div>
+                <input type="checkbox" id="ecriture<%- memo['Id'] %>" name="ecriture">
+                <label for="ecriture<%- memo['Id'] %>">Droit en écriture</label>
+            </div>
+            <input type="hidden" name="id" value="<%- memo['Id'] %>">
+        </form>
+        <%
+            }
+        %>
     </div>
     <%
-        if(pseudo == memo["IdCrea"])
+        if(memo["Droit"] == 0)
         {
     %>
     <a class="suppr" href="/supprMemo?id=<%- memo['Id'] %>">
