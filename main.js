@@ -53,7 +53,7 @@ con.connect(function (err) {
 
     if (pseudo.length == 0) return callback();
     if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
-    var sql = "SELECT Hash FROM utilisateurs WHERE Id = " + con.escape(pseudo)
+    var sql = "SELECT Hash FROM utilisateurs WHERE Id = " + con.escape(pseudo);
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -63,7 +63,7 @@ con.connect(function (err) {
         if (!result) return callback();
         callback(null, { pseudo: pseudo });
       });
-    })
+    });
   }
 
   function inscription(pseudo, motDePasse, motDePasse2, callback) {
@@ -72,7 +72,7 @@ con.connect(function (err) {
     if (pseudo.length == 0) return callback();
     if (motDePasse != motDePasse2) return callback();
     if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
-    var sql = "SELECT Id FROM utilisateurs WHERE Id = " + con.escape(pseudo)
+    var sql = "SELECT Id FROM utilisateurs WHERE Id = " + con.escape(pseudo);
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (result.length) return callback();
@@ -80,13 +80,13 @@ con.connect(function (err) {
       bcrypt.hash(motDePasse, saltRounds, function (err, hash) {
         if (err) return callback(err);
 
-        var sql = "INSERT INTO utilisateurs (Id, Hash) VALUES (" + con.escape(pseudo) + ", " + con.escape(hash) + ") ON DUPLICATE KEY UPDATE Id = Id"
+        var sql = "INSERT INTO utilisateurs (Id, Hash) VALUES (" + con.escape(pseudo) + ", " + con.escape(hash) + ") ON DUPLICATE KEY UPDATE Id = Id";
         con.query(sql, function (err, result) {
           if (err) return callback(err);
           return callback(null, { pseudo: pseudo });
-        })
+        });
       });
-    })
+    });
   }
 
   function modif(pseudo, ancienMotDePasse, motDePasse, motDePasse2, callback) {
@@ -95,7 +95,7 @@ con.connect(function (err) {
     if (pseudo.length == 0) return callback();
     if (motDePasse != motDePasse2) return callback();
     if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
-    var sql = "SELECT Hash FROM utilisateurs WHERE Id = " + con.escape(pseudo)
+    var sql = "SELECT Hash FROM utilisateurs WHERE Id = " + con.escape(pseudo);
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -107,7 +107,7 @@ con.connect(function (err) {
         bcrypt.hash(motDePasse, saltRounds, function (err, hash) {
           if (err) return callback(err);
 
-          var sql = "UPDATE utilisateurs SET Hash = " + con.escape(hash) + " WHERE Id = " + con.escape(pseudo)
+          var sql = "UPDATE utilisateurs SET Hash = " + con.escape(hash) + " WHERE Id = " + con.escape(pseudo);
           con.query(sql, function (err) {
             if (err) return callback(err);
             return callback(null, { pseudo: pseudo });
@@ -123,31 +123,31 @@ con.connect(function (err) {
       if (err) return callback(err);
 
       callback(null, result);
-    })
+    });
   }
 
   function creerMemo(pseudo, texte, callback) {
-    if (texte.length == 0) return callback()
-    if (texte.length > 100) return callback()
+    if (texte.length == 0) return callback();
+    if (texte.length > 100) return callback();
 
-    var sql = "INSERT INTO memos (Texte) VALUES (" + con.escape(texte) + ") ON DUPLICATE KEY UPDATE Texte = Texte"
+    var sql = "INSERT INTO memos (Texte) VALUES (" + con.escape(texte) + ") ON DUPLICATE KEY UPDATE Texte = Texte";
     con.query(sql, function (err, result) {
       if (err) return callback(err);
 
-      var sql = "INSERT INTO droits (PseudoId, MemoId, Droit) VALUES (" + con.escape(pseudo) + ", " + con.escape(result.insertId) + ", 0) ON DUPLICATE KEY UPDATE PseudoId = PseudoId"
+      var sql = "INSERT INTO droits (PseudoId, MemoId, Droit) VALUES (" + con.escape(pseudo) + ", " + con.escape(result.insertId) + ", 0) ON DUPLICATE KEY UPDATE PseudoId = PseudoId";
       con.query(sql, function (err, result) {
         if (err) return callback(err);
 
         callback();
-      })
-    })
+      });
+    });
   }
 
   function modifMemo(pseudo, memo, texte, callback) {
-    if (texte.length == 0) return callback()
-    if (texte.length > 100) return callback()
+    if (texte.length == 0) return callback();
+    if (texte.length > 100) return callback();
 
-    var sql = "SELECT PseudoId FROM droits WHERE PseudoId = " + con.escape(pseudo) + " AND MemoId = " + con.escape(memo) + " AND (Droit < 2)"
+    var sql = "SELECT PseudoId FROM droits WHERE PseudoId = " + con.escape(pseudo) + " AND MemoId = " + con.escape(memo) + " AND (Droit < 2)";
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -157,34 +157,34 @@ con.connect(function (err) {
         if (err) return callback(err);
 
         callback(null, { memo: memo, texte: texte });
-      })
-    })
+      });
+    });
   }
 
   function supprMemo(pseudo, id, callback) {
-    var sql = "SELECT * FROM droits WHERE PseudoId = " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
+    var sql = "SELECT * FROM droits WHERE PseudoId = " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0";
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
 
-      var sql = "DELETE FROM droits WHERE MemoId = " + con.escape(id)
+      var sql = "DELETE FROM droits WHERE MemoId = " + con.escape(id);
       con.query(sql, function (err, result) {
         if (err) return callback(err);
 
-        var sql = "DELETE FROM memos WHERE Id = " + con.escape(id)
+        var sql = "DELETE FROM memos WHERE Id = " + con.escape(id);
         con.query(sql, function (err, result) {
           if (err) return callback(err);
 
           callback();
-        })
-      })
-    })
+        });
+      });
+    });
   }
 
   function ajouteUtilisateurAMemo(pseudo, pseudoAAjouter, id, ecriture, callback) {
     if (pseudoAAjouter.length == 0) return callback();
 
-    var sql = "SELECT * FROM droits WHERE PseudoId = " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
+    var sql = "SELECT * FROM droits WHERE PseudoId = " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0";
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -195,8 +195,8 @@ con.connect(function (err) {
         if (err) return callback(err);
 
         callback();
-      })
-    })
+      });
+    });
   }
 
   function supprUtilisateur(pseudo, callback) {
@@ -213,11 +213,11 @@ con.connect(function (err) {
           if (err) return callback(err);
           if (!result.length) return callback();
 
-          var first = result.pop()['MemoId']
+          var first = result.pop()['MemoId'];
           var sql = "DELETE FROM droits WHERE MemoId = " + first;
           result.forEach(memo => {
             sql += " or MemoId = " + con.escape(memo['MemoId']);
-          })
+          });
 
           con.query(sql, function (err) {
             if (err) return callback(err);
@@ -225,7 +225,7 @@ con.connect(function (err) {
             var sql = "DELETE FROM memos WHERE Id = " + first;
             result.forEach(memo => {
               sql += " or Id = " + con.escape(memo['MemoId']);
-            })
+            });
 
             con.query(sql, function (err) {
               if (err) return callback(err);
@@ -396,20 +396,20 @@ con.connect(function (err) {
 
     socket.on('new room', (data) => {
       if (socket.handshake.session.utilisateur) {
-        console.log("joining " + data)
+        console.log("joining " + data);
         socket.join(data);
       }
     });
 
     socket.on('update', (data) => {
       if (socket.handshake.session.utilisateur) {
-        console.log("updating " + data.memo)
+        console.log("updating " + data.memo);
         modifMemo(socket.handshake.session.utilisateur.pseudo, data.memo, data.texte, (err, result) => {
           if (err) throw err;
           if (result) {
             socket.broadcast.to(result.memo).emit('update others', result);
           }
-        })
+        });
       }
     });
   });
