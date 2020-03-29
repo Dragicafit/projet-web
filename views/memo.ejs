@@ -3,7 +3,7 @@
         <div class="droite">
             <div>
                 <textarea id="<%- memo['Id'] %>" class="texteMemo" rows="3" cols="30" placeholder="texte"
-                    <%- memo["Droit"] == 2 ? "readonly" : "" %> maxlength="100" required><%- memo['Texte'] %>
+                    <%- memo["Droit"] == 2 ? "readonly" : "" %> maxlength="100" required><%= memo['Texte'] %>
                 </textarea>
             </div>
         </div>

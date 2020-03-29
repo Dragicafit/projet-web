@@ -53,7 +53,7 @@ con.connect(function (err) {
 
     if (pseudo.length == 0) return callback();
     if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
-    var sql = "SELECT Hash FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
+    var sql = "SELECT Hash FROM utilisateurs WHERE Id = " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -72,7 +72,7 @@ con.connect(function (err) {
     if (pseudo.length == 0) return callback();
     if (motDePasse != motDePasse2) return callback();
     if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
-    var sql = "SELECT Id FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
+    var sql = "SELECT Id FROM utilisateurs WHERE Id = " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (result.length) return callback();
@@ -95,7 +95,7 @@ con.connect(function (err) {
     if (pseudo.length == 0) return callback();
     if (motDePasse != motDePasse2) return callback();
     if (motDePasse.length < 8 || motDePasse.length > 32) return callback();
-    var sql = "SELECT Hash FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo)
+    var sql = "SELECT Hash FROM utilisateurs WHERE Id = " + con.escape(pseudo)
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -118,7 +118,7 @@ con.connect(function (err) {
   }
 
   function memos(pseudo, droit, callback) {
-    var sql = "SELECT memos.Id as Id, memos.Texte as Texte, memos.Creation as Crea, memos.Modif as Modif, droits.Droit as Droit FROM droits LEFT JOIN memos on droits.MemoId = memos.Id WHERE droits.PseudoId LIKE " + con.escape(pseudo) + (droit != null ? "AND droits.Droit = " + droit : "");
+    var sql = "SELECT memos.Id as Id, memos.Texte as Texte, memos.Creation as Crea, memos.Modif as Modif, droits.Droit as Droit FROM droits LEFT JOIN memos on droits.MemoId = memos.Id WHERE droits.PseudoId = " + con.escape(pseudo) + (droit != null ? "AND droits.Droit = " + droit : "");
     con.query(sql, function (err, result) {
       if (err) return callback(err);
 
@@ -127,8 +127,9 @@ con.connect(function (err) {
   }
 
   function creerMemo(pseudo, texte, callback) {
-    if (texte.length > 100)
-      return callback()
+    if (texte.length == 0) return callback()
+    if (texte.length > 100) return callback()
+
     var sql = "INSERT INTO memos (Texte) VALUES (" + con.escape(texte) + ") ON DUPLICATE KEY UPDATE Texte = Texte"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
@@ -143,9 +144,10 @@ con.connect(function (err) {
   }
 
   function modifMemo(pseudo, memo, texte, callback) {
-    if (texte.length > 100)
-      return callback()
-    var sql = "SELECT PseudoId FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " AND MemoId = " + con.escape(memo) + " AND (Droit < 2)"
+    if (texte.length == 0) return callback()
+    if (texte.length > 100) return callback()
+
+    var sql = "SELECT PseudoId FROM droits WHERE PseudoId = " + con.escape(pseudo) + " AND MemoId = " + con.escape(memo) + " AND (Droit < 2)"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -160,7 +162,7 @@ con.connect(function (err) {
   }
 
   function supprMemo(pseudo, id, callback) {
-    var sql = "SELECT * FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
+    var sql = "SELECT * FROM droits WHERE PseudoId = " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -180,8 +182,9 @@ con.connect(function (err) {
   }
 
   function ajouteUtilisateurAMemo(pseudo, pseudoAAjouter, id, ecriture, callback) {
-    console.log(pseudo, pseudoAAjouter, id, ecriture)
-    var sql = "SELECT * FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
+    if (pseudoAAjouter.length == 0) return callback();
+
+    var sql = "SELECT * FROM droits WHERE PseudoId = " + con.escape(pseudo) + " and MemoId = " + con.escape(id) + " and Droit = 0"
     con.query(sql, function (err, result) {
       if (err) return callback(err);
       if (!result.length) return callback();
@@ -197,15 +200,15 @@ con.connect(function (err) {
   }
 
   function supprUtilisateur(pseudo, callback) {
-    var sql = "DELETE FROM utilisateurs WHERE Id LIKE " + con.escape(pseudo);
+    var sql = "DELETE FROM utilisateurs WHERE Id = " + con.escape(pseudo);
     con.query(sql, function (err) {
       if (err) return callback(err);
 
-      var sql = "SELECT MemoId FROM droits WHERE PseudoId LIKE " + con.escape(pseudo) + " and Droit = 0";
+      var sql = "SELECT MemoId FROM droits WHERE PseudoId = " + con.escape(pseudo) + " and Droit = 0";
       con.query(sql, function (err, result) {
         if (err) return callback(err);
 
-        var sql = "DELETE FROM droits WHERE PseudoId LIKE " + con.escape(pseudo);
+        var sql = "DELETE FROM droits WHERE PseudoId = " + con.escape(pseudo);
         con.query(sql, function (err) {
           if (err) return callback(err);
           if (!result.length) return callback();
