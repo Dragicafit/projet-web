@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const session = require('express-session');
-const mysql = require('mysql')
+const mysql = require('mysql');
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
@@ -13,7 +13,7 @@ let con = mysql.createConnection({
   user: "root",
   password: "UKhzlwBPl9882zEs",
   database: "projet_web"
-})
+});
 
 con.connect(function (err) {
   if (err) throw err;
